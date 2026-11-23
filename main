@@ -1,0 +1,47 @@
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+public class Main {
+    public static void main(String[] args) {
+        String urlString = "https://www.bing.com/images/search?view=detailV2&ccid=X9UEduEV&id=E7F9CD071FE253BCF47905E0C71B3F0EECECBD66&thid=OIP.X9UEduEVJuU73WB-uFa9WwHaJI&mediaurl=https%3A%2F%2Fi.redd.it%2F2ev5risf3sea1.png&cdnurl=https%3A%2F%2Fth.bing.com%2Fth%2Fid%2FR.5fd50476e11526e53bdd607eb856bd5b%3Frik%3DZr3s7A4%252fG8fgBQ%26pid%3DImgRaw%26r%3D0&exph=1051&expw=852&q=%d0%ba%d0%b0%d1%80%d1%82%d0%b8%d0%bd%d0%ba%d0%b8+%d1%82%d0%b8%d0%bd%d0%ba%d0%b5%d1%80&form=IRPRST&ck=A2B3136AD0101959CF4BA4145FBD2E17&selectedindex=7&itb=0&qpvt=%d0%ba%d0%b0%d1%80%d1%82%d0%b8%d0%bd%d0%ba%d0%b8+%d1%82%d0%b8%d0%bd%d0%ba%d0%b5%d1%80&ajaxhist=0&ajaxserp=0&cit=ccid_jdKAYzD0*cp_20A20EB9ED935CF7156F14DDFB9AB81D*mid_3DD768F48FCCD3C5668C2CB7C172818F18ADAE43*thid_OIP.jdKAYzD0fnSwT6xJkBjnmQHaEK&vt=2";
+        String downloadDir = "C:\\Cистемное программирование";
+        String filePath = downloadDir + File.separator + "downloaded_image.jpg";
+        Thread downloadThread = new Thread(() -> {
+            System.out.println("Подождите, идет скачивание изображения в: " + filePath);
+            try {
+                long durationMs = downloadImageFile(filePath, urlString);
+                System.out.printf("Скачивание успешно завершено за %d мс%n", durationMs);
+            } catch (IOException ex) {
+                System.err.println("Ошибка при скачивании: " + ex.getMessage());
+            }
+        });
+        downloadThread.start();
+        try {
+            downloadThread.join();
+        } catch (InterruptedException ex) {
+            System.err.println("Скачивание было прервано");
+            Thread.currentThread().interrupt();
+        }
+    }
+    public static long downloadImageFile(final String filePath, final String urlString) throws IOException {
+        long startTime = System.currentTimeMillis();
+
+        File targetFile = new File(filePath);
+        File parentDir = targetFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        try (BufferedInputStream in = new BufferedInputStream(new URL(urlString).openStream());
+             FileOutputStream fout = new FileOutputStream(targetFile)) {
+            final byte[] data = new byte[8192];
+            int count;
+            while ((count = in.read(data, 0, 8192)) != -1) {
+                fout.write(data, 0, count);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        return endTime - startTime;
+    }
+}
